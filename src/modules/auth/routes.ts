@@ -7,14 +7,14 @@ export default async function authRoutes(app: FastifyInstance) {
 
   app.post("/signup", async (request, reply) => {
     const body = registerSchema.parse(request.body)
-    const user = await authService.registerUser(app, body)
-    return reply.code(201).send(user)
+    const response = await authService.registerUser(app, body)
+    return reply.code(201).send(response)
   })
 
   app.post("/login", async (request, reply) => {
     const body = loginSchema.parse(request.body)
-    const user = await authService.loginUser(app, body)
-    return reply.code(200).send(user)
+    const response = await authService.loginUser(app, body)
+    return reply.code(200).send(response)
   })
 
   app.get("/health", async () => {

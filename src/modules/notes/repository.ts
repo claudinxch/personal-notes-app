@@ -5,7 +5,7 @@ import { InternalServerError, NotFoundError } from "../../utils/errors";
 import type { CreateNote, UpdateNote } from "./types";
 
 export class NotesRepository {
-    createNote = async (userId: string, data: CreateNote) => {
+    createNote = async (userId: string, data: Omit<CreateNote, 'tags'>) => {
         const [note] = await db.insert(notes).values({
             userId,
             title: data.title,
@@ -31,7 +31,7 @@ export class NotesRepository {
         return note
     }
 
-    updateNote = async (noteId: string, userId: string, data: UpdateNote) => {
+    updateNote = async (noteId: string, userId: string, data: Omit<UpdateNote, 'tags'>) => {
         const [updatedNote] = await db.update(notes).set({ ...data, updatedAt: new Date() }).
             where(and(
                 eq(notes.id, noteId), 
@@ -69,6 +69,23 @@ export class NotesRepository {
         if(!deletedNote) throw new NotFoundError("Note not found")
 
         return deletedNote
+    }
+
+    restoreNote = async (noteId: string, userId: string) => {
+        const [restoredNote] = await db.update(notes).set({ 
+            isDeleted: false, 
+            deletedAt: null, 
+            updatedAt: new Date() 
+        })
+        .where(and(
+            eq(notes.id, noteId), 
+            eq(notes.userId, userId), 
+            eq(notes.isDeleted, true)
+        )).returning()
+
+        if (!restoredNote) throw new NotFoundError("Note not found")
+   
+        return restoredNote
     }
 
     // addTagToNote(noteId, tagId)
